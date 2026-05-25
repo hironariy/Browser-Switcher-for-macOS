@@ -22,7 +22,12 @@ enum BrowserServiceError: LocalizedError {
 
 struct LaunchServicesBrowserService: BrowserService {
     func currentDefaultBrowserBundleIdentifier() -> String? {
-        LSCopyDefaultHandlerForURLScheme("https" as CFString)?.takeRetainedValue() as String?
+        guard let url = url(for: "https"),
+              let applicationURL = NSWorkspace.shared.urlForApplication(toOpen: url) else {
+            return nil
+        }
+
+        return Bundle(url: applicationURL)?.bundleIdentifier
     }
 
     func installedBrowsers() -> [Browser] {
@@ -55,11 +60,17 @@ struct LaunchServicesBrowserService: BrowserService {
     }
 
     private func handlers(for scheme: String) -> [String] {
-        guard let unmanagedHandlers = LSCopyAllHandlersForURLScheme(scheme as CFString) else {
+        guard let url = url(for: scheme) else {
             return []
         }
 
-        return unmanagedHandlers.takeRetainedValue() as? [String] ?? []
+        return NSWorkspace.shared.urlsForApplications(toOpen: url).compactMap {
+            Bundle(url: $0)?.bundleIdentifier
+        }
+    }
+
+    private func url(for scheme: String) -> URL? {
+        URL(string: "\(scheme)://www.example.com")
     }
 
     private func setDefaultHandler(for scheme: String, bundleIdentifier: String) throws {

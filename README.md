@@ -19,6 +19,10 @@ Shortcuts can be changed from the settings window.
 
 ## Development
 
+Requires macOS 14 or newer and Swift 6, such as the toolchain included with Xcode 16.
+
+Browser discovery uses the modern `NSWorkspace` APIs available on the supported macOS target.
+
 ```sh
 swift build
 swift run BrowserSwitcher
